@@ -1,5 +1,6 @@
 #include <fstream>
 
+#include "Tokenization/Finders/LiteralFinder.hpp"
 #include "Tokenization/Finders/NameFinder.hpp"
 #include "Tokenization/Finders/NumberFinder.hpp"
 #include "Tokenization/Finders/OperatorFinder.hpp"
@@ -13,7 +14,8 @@ struct customTokens : private peach::token::tokenCategory
         DOT = peach::token::tokenCategory::_TOKEN_TOTAL + 1,
         MODULE = peach::token::tokenCategory::_TOKEN_TOTAL + 2,
         SIG = peach::token::tokenCategory::_TOKEN_TOTAL + 3,
-        TYPE = peach::token::tokenCategory::_TOKEN_TOTAL + 4;
+        TYPE = peach::token::tokenCategory::_TOKEN_TOTAL + 4,
+        LITERAL = peach::token::tokenCategory::_TOKEN_TOTAL + 5;
 };
 
 int main(int argc, char **argv)
@@ -39,11 +41,13 @@ int main(int argc, char **argv)
         peach::token::registerTokenCategoryString("MODULE");
         peach::token::registerTokenCategoryString("SIG");
         peach::token::registerTokenCategoryString("TYPE");
+        peach::token::registerTokenCategoryString("LITERAL");
 
         peach::fsm::FsmCollection lexer;
         lexer
             .buildAppendFsm<peach::fsm::NameFinder>()
             .buildAppendFsm<peach::fsm::NumberFinder>(tokenCategory::VALUE_INT)
+            .buildAppendFsm<peach::fsm::LiteralFinder<'"'>>(customTokens::LITERAL)
             .buildAppendFsm<peach::fsm::OperatorFinder>(
                 std::vector<std::pair<std::string, tokenCategory_t>>{
                     {":-", tokenCategory::ASSIGNMENT},
