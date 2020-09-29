@@ -4,7 +4,9 @@ project(prolog VERSION 0.1.0)
 set(EXE prolog)
 
 add_executable(${EXE} src/main.cpp
-                      src/Lexer.cpp)
+                      src/Lexer.cpp
+                      src/Exception.cpp
+                      src/GrammarChecker.cpp)
 
 target_include_directories(${EXE} PRIVATE include)
 
