@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(fp_lexer VERSION 0.1.0)
+project(prolog VERSION 0.1.0)
 
-set(EXE fp_lexer)
+set(EXE prolog)
 
-add_executable(${EXE} src/main.cpp)
+add_executable(${EXE} src/main.cpp
+                      src/Lexer.cpp)
 
-target_include_directories(${EXE} PUBLIC peach/core/include)
+target_include_directories(${EXE} PRIVATE include)
 
 target_include_directories(${EXE} PRIVATE peach/core/include)
 target_include_directories(${EXE} PRIVATE peach/core/include/Evaluation)
