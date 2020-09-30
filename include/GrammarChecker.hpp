@@ -1,9 +1,11 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <unordered_map>
+#include <variant>
 
 #include "Exception.hpp"
 #include "Tokenization/Token.hpp"
@@ -12,41 +14,55 @@ namespace prolog
 {
 namespace grammar
 {
-using MaybeException = std::optional<exception::Exception>;
 using peach::token::TokenPtr;
 using TokenPtrIterator = std::vector<peach::token::TokenPtr>::iterator;
 
-using grammarUnitType = int;
-static constexpr grammarUnitType TERMINAL_UNIT = 0;
+using grammarUnit_t = int;
+static constexpr grammarUnit_t TERMINAL_UNIT = 0;
+using TokenMatcherType = std::function<bool(const peach::token::Token &)>;
 
-struct GrammarUnit
-{
-    static GrammarUnit terminal();
-    static GrammarUnit nonTerminal(grammarUnitType type, TokenPtrIterator begin, TokenPtrIterator end);
-
-    const grammarUnitType type;
-    const TokenPtrIterator begin, end;
-    bool isTerminal() const noexcept;
-
-private:
-    GrammarUnit(grammarUnitType type = TERMINAL_UNIT);
-    GrammarUnit(grammarUnitType type, TokenPtrIterator begin, TokenPtrIterator end);
-};
-
-class GrammarUnitSequence
+class GrammarUnit
 {
 public:
-    void append(GrammarUnit &&);
-    void append(const GrammarUnit &);
+    GrammarUnit(const TokenMatcherType &token, const std::string &unitDesctiption);
+    GrammarUnit(TokenMatcherType &&token, const std::string &unitDescription);
+    GrammarUnit(grammarUnit_t type, const std::string &unitDescription);
+    GrammarUnit(grammarUnit_t type, TokenPtrIterator begin, TokenPtrIterator end, const std::string &unitDescription);
 
-    MaybeException matchTokenSequence(TokenPtrIterator begin, TokenPtrIterator end) const;
+    bool isTerminal() const noexcept;
+    grammarUnit_t getUnitType() const noexcept;
+
+    const TokenPtrIterator begin() const;
+    const TokenPtrIterator end() const;
+    TokenPtrIterator begin();
+    TokenPtrIterator end();
+
+    const TokenMatcherType &matcher() const;
+    const std::string &description() const;
 
 private:
-    std::vector<std::unique_ptr<GrammarUnit>> to_;
+    const grammarUnit_t type_;
+    const TokenMatcherType tokenMatcher_;
+    const TokenPtrIterator begin_, end_;
+    const std::string unitDescription_;
 };
 
-MaybeException match(TokenPtrIterator begin, TokenPtrIterator end,
-                     const std::unordered_map<grammarUnitType, GrammarUnitSequence> &rules);
+using GrammarUnitSequence = std::vector<GrammarUnit>;
 
+struct Rule
+{
+    grammarUnit_t from;
+    GrammarUnitSequence to;
+};
+
+struct MathingResult
+{
+    TokenPtrIterator lastMatched;
+    exception::Exception exception = exception::EmptyException();
+};
+
+MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
+                                   const std::vector<Rule> &rules,
+                                   const std::unordered_map<std::string, std::string> &braces);
 } // namespace grammar
 } // namespace prolog

@@ -16,8 +16,23 @@ public:
 
     virtual ~Exception() noexcept = default;
 
+    bool isEmpty() const noexcept;
+
 private:
     std::string msg_;
+
+protected:
+    bool empty_ = false;
+};
+
+class EmptyException : public Exception
+{
+public:
+    EmptyException()
+        : Exception("EmptyException", "no exception occured")
+    {
+        empty_ = true;
+    }
 };
 
 class PositionalException : public Exception
@@ -26,7 +41,7 @@ public:
     PositionalException(const std::string &name,
                         const std::string &message,
                         std::size_t line,
-                        std::size_t linePos);
+                        int linePos);
 };
 
 class GrammarException : public PositionalException
@@ -34,7 +49,7 @@ class GrammarException : public PositionalException
 public:
     GrammarException(const std::string &message,
                      std::size_t line,
-                     std::size_t linePos);
+                     int linePos);
 };
 } // namespace exception
 } // namespace prolog

@@ -8,18 +8,17 @@ Exception::Exception(const std::string &name,
                      const std::string &message)
     : msg_(name + ": " + message) {}
 
-const char *Exception::what() const noexcept
-{
-    return msg_.c_str();
-}
+const char *Exception::what() const noexcept { return msg_.c_str(); }
+
+bool Exception::isEmpty() const noexcept { return empty_; }
 
 PositionalException::PositionalException(const std::string &name,
                                          const std::string &message,
                                          std::size_t line,
-                                         std::size_t linePos)
+                                         int linePos)
     : Exception(name,
                 message +
-                    " at" +
+                    " at " +
                     std::to_string(line) + ":" +
                     std::to_string(linePos))
 {
@@ -27,7 +26,7 @@ PositionalException::PositionalException(const std::string &name,
 
 GrammarException::GrammarException(const std::string &message,
                                    std::size_t line,
-                                   std::size_t linePos)
+                                   int linePos)
     : PositionalException("GrammarException", message, line, linePos) {}
 } // namespace exception
 } // namespace prolog
