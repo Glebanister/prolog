@@ -13,7 +13,7 @@ PrologLexer::PrologLexer()
         .buildAppendFsm<peach::fsm::LiteralFinder<'"'>>(prologTokens::LITERAL)
         .buildAppendFsm<peach::fsm::OperatorFinder>(
             std::vector<std::pair<std::string, tokenCategory_t>>{
-                {":-", tokenCategory::ASSIGNMENT},
+                {":-", prologTokens::CORKSCREW},
                 {"->", tokenCategory::OPERATOR_BI},
             })
         .buildAppendFsm<peach::fsm::SingleCharFinder>(
@@ -23,8 +23,11 @@ PrologLexer::PrologLexer()
                 {'\t', tokenCategory::SEP_TAB},
                 {'[', tokenCategory::BRACKET_OPEN},
                 {']', tokenCategory::BRACKET_CLOSE},
+                {'(', tokenCategory::BRACKET_OPEN},
+                {')', tokenCategory::BRACKET_CLOSE},
                 {'.', prologTokens::PERIOD},
                 {',', prologTokens::COMMA},
+                {';', prologTokens::SEMICOLON},
             });
 }
 
@@ -33,7 +36,7 @@ std::vector<peach::token::TokenPtr> PrologLexer::tokenizeText(const std::string 
     std::vector<peach::token::TokenPtr> tks;
     for (auto &&tk : peach::fsm::FsmCollection::tokenizeText(text, keywords_))
     {
-        if (peach::token::isEndline(tk) || !peach::token::isSeparator(tk))
+        if (!peach::token::isSeparator(tk))
         {
             tks.emplace_back(std::move(tk));
         }
