@@ -8,6 +8,11 @@ Exception::Exception(const std::string &name,
                      const std::string &message)
     : msg_(name + ": " + message) {}
 
+void Exception::extend(const Exception &ex)
+{
+    msg_ += std::string("\n") + ex.what();
+}
+
 const char *Exception::what() const noexcept { return msg_.c_str(); }
 
 bool Exception::isEmpty() const noexcept { return empty_; }
@@ -23,6 +28,10 @@ PositionalException::PositionalException(const std::string &name,
                     std::to_string(linePos))
 {
 }
+
+TokenException::TokenException(std::size_t line,
+                               int linePos)
+    : PositionalException("TokenException", "undefined token", line, linePos) {}
 
 GrammarException::GrammarException(const std::string &message,
                                    std::size_t line,

@@ -51,8 +51,10 @@ using GrammarUnitSequence = std::vector<GrammarUnit>;
 
 struct Rule
 {
-    grammarUnit_t from;
+    GrammarUnit from;
     GrammarUnitSequence to;
+
+    Rule(const GrammarUnit &from, const GrammarUnitSequence &to);
 };
 
 struct MathingResult
@@ -66,3 +68,22 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
                                    const std::unordered_map<std::string, std::string> &braces);
 } // namespace grammar
 } // namespace prolog
+
+namespace log
+{
+static int indent = 0;
+template <typename... Args>
+inline void log(Args... args)
+{
+    (std::cerr << ... << args);
+}
+
+inline void indentate()
+{
+    for (int i = 0; i < indent; ++i)
+    {
+        std::cerr << "| ";
+    }
+    std::cerr << "- ";
+}
+} // namespace log

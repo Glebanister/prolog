@@ -6,7 +6,8 @@ set(EXE prolog)
 add_executable(${EXE} src/main.cpp
                       src/Lexer.cpp
                       src/Exception.cpp
-                      src/GrammarChecker.cpp)
+                      src/GrammarChecker.cpp
+                      src/PrologGrammarChecker.cpp)
 
 target_include_directories(${EXE} PRIVATE include)
 

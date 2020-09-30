@@ -11,7 +11,7 @@ namespace prolog
 {
 namespace lexer
 {
-struct prologTokens : private peach::token::tokenCategory
+struct prologTokens : public peach::token::tokenCategory
 {
     static constexpr peach::token::tokenCategory_t
         COMMA = peach::token::tokenCategory::_TOKEN_TOTAL,
@@ -19,7 +19,8 @@ struct prologTokens : private peach::token::tokenCategory
         MODULE = peach::token::tokenCategory::_TOKEN_TOTAL + 2,
         SIG = peach::token::tokenCategory::_TOKEN_TOTAL + 3,
         TYPE = peach::token::tokenCategory::_TOKEN_TOTAL + 4,
-        LITERAL = peach::token::tokenCategory::_TOKEN_TOTAL + 5;
+        LITERAL = peach::token::tokenCategory::_TOKEN_TOTAL + 5,
+        CORKSCREW = peach::token::tokenCategory::_TOKEN_TOTAL + 6;
 };
 
 class PrologLexer : protected peach::fsm::FsmCollection
