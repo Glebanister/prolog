@@ -47,6 +47,17 @@ std::vector<prolog::grammar::Rule> rules =
             };
 ```
 
+And stands for
+
+<img src="https://latex.codecogs.com/svg.latex?\Large&space;
+\\
+decl := name \ body \ \text{.} \\
+body :=  \text{:-}  \ disj \ | \ \varepsilon \\
+disj := conj \ \text{;} \ disj \ | \ conj \\
+conj := name \ \text{,} \ conj \ | \ \text{(} disj \text{)} \ \text{,} \ conj \ | \ \text{(} disj \text{)} \ | \ name \\
+name := \text{any identificator}
+"/>
+
 ## Example
 
 ```bash
