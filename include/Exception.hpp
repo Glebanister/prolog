@@ -18,6 +18,8 @@ public:
 
     bool isEmpty() const noexcept;
 
+    void extend(const Exception &);
+
 private:
     std::string msg_;
 
@@ -42,6 +44,13 @@ public:
                         const std::string &message,
                         std::size_t line,
                         int linePos);
+};
+
+class TokenException : public PositionalException
+{
+public:
+    TokenException(std::size_t line,
+                   int linePos);
 };
 
 class GrammarException : public PositionalException
