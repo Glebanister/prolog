@@ -17,18 +17,24 @@ std::vector<std::vector<peach::token::TokenPtr>> splitByPeriod(std::vector<peach
         currentDeclaration.push_back(std::move(tok));
         if (category == prolog::lexer::prologTokens::PERIOD)
         {
-            declarations.push_back(std::move(currentDeclaration));
+            if (!currentDeclaration.empty())
+            {
+                declarations.push_back(std::move(currentDeclaration));
+            }
             currentDeclaration.clear();
         }
     }
-    declarations.push_back(std::move(currentDeclaration));
+    if (!currentDeclaration.empty())
+    {
+        declarations.push_back(std::move(currentDeclaration));
+    }
 
     return declarations;
 }
 
-std::vector<exception::Exception> checkPrologProgram(const std::string &programText)
+std::vector<std::shared_ptr<exception::Exception>> checkPrologProgram(const std::string &programText)
 {
-    std::vector<exception::Exception> exceptions;
+    std::vector<std::shared_ptr<exception::Exception>> exceptions;
 
     prolog::lexer::PrologLexer lexer;
     std::vector<peach::token::TokenPtr> programTokens = lexer.tokenizeText(programText);
@@ -36,7 +42,7 @@ std::vector<exception::Exception> checkPrologProgram(const std::string &programT
     {
         if (!tk->getCategory())
         {
-            exceptions.push_back(exception::TokenException(tk->getLine(), tk->getLinePosition()));
+            exceptions.push_back(std::make_shared<exception::TokenException>(tk->getLine(), tk->getLinePosition()));
         }
     }
     if (!exceptions.empty())
@@ -99,11 +105,11 @@ std::vector<exception::Exception> checkPrologProgram(const std::string &programT
                 {body, equals{str(":-"), disj}},
                 {body, equals{}},
 
-                {disj, equals{conj, str(";"), disj}},
+                {disj, equals{conj, oper(";"), disj}},
                 {disj, equals{conj}},
 
                 {conj, equals{name, str(","), conj}},
-                {conj, equals{str("("), disj, str(")"), str(","), conj}},
+                {conj, equals{str("("), disj, str(")"), oper(","), conj}},
                 {conj, equals{str("("), disj, str(")")}},
                 {conj, equals{name}},
 
@@ -116,7 +122,7 @@ std::vector<exception::Exception> checkPrologProgram(const std::string &programT
                                                                                               decl.description()},
                                                                  rules,
                                                                  {{"(", ")"}});
-        if (!matchResult.exception.isEmpty())
+        if (!matchResult.exception->isEmpty())
         {
             exceptions.push_back(std::move(matchResult.exception));
         }

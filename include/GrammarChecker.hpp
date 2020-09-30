@@ -60,7 +60,7 @@ struct Rule
 struct MathingResult
 {
     TokenPtrIterator lastMatched;
-    exception::Exception exception = exception::EmptyException();
+    std::shared_ptr<exception::Exception> exception = std::make_shared<exception::EmptyException>();
 };
 
 MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
@@ -68,22 +68,3 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
                                    const std::unordered_map<std::string, std::string> &braces);
 } // namespace grammar
 } // namespace prolog
-
-namespace log
-{
-static int indent = 0;
-template <typename... Args>
-inline void log(Args... args)
-{
-    (std::cerr << ... << args);
-}
-
-inline void indentate()
-{
-    for (int i = 0; i < indent; ++i)
-    {
-        std::cerr << "| ";
-    }
-    std::cerr << "- ";
-}
-} // namespace log

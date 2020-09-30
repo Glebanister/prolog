@@ -1,81 +1,74 @@
 #include <fstream>
 
-#include "GrammarChecker.hpp"
-#include "Lexer.hpp"
+#include "cxxopts.hpp"
 
-int main(int argc, char **argv)
+#include "PrologGrammarChecker.hpp"
+
+int main(int argc, const char **argv)
 {
     try
     {
-        std::vector<peach::token::TokenPtr> tokens;
-
-        std::string programText = "1 + 1 + 1";
-
-        prolog::lexer::PrologLexer lexer;
-        tokens = lexer.tokenizeText(programText);
-
-        tokens.push_back(std::make_unique<peach::token::Token>(peach::token::tokenCategory::BRACKET_OPEN,
-                                                               "begin",
-                                                               0,
-                                                               0,
-                                                               0));
-        std::reverse(tokens.begin(), tokens.end());
-        tokens.push_back(std::make_unique<peach::token::Token>(peach::token::tokenCategory::BRACKET_OPEN,
-                                                               "end",
-                                                               std::count(programText.begin(), programText.end(), '\n'),
-                                                               0,
-                                                               programText.length()));
-        std::reverse(tokens.begin(), tokens.end());
-
-        using namespace prolog::grammar;
-
-        auto str = [](std::string s) {
-            return GrammarUnit([=](const peach::token::Token &tk) { return tk.getTokenString() == s; }, "string '" + s + "'");
-        };
-
-        using seq = GrammarUnitSequence;
-        GrammarUnit A{1, "A"};
-
-        enum nonterm_t : prolog::grammar::grammarUnit_t
+        std::string programText;
         {
-            TERM = 1,
-            FACTOR,
-            NUM,
-        };
+            const std::string description = ""
+                                            "Prolog grammar checker\n"
+                                            "Specify input file path, checker will put error information to stdout"
+                                            "\nor empty string if program is correct Prolog program\n";
 
-        GrammarUnit term{TERM, "summation"};
-        GrammarUnit fact{FACTOR, "multiplication"};
-        GrammarUnit num{NUM, "integer"};
+            cxxopts::Options options("prolog-checker", description);
 
-        auto oper = [&](std::string op) {
-            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getTokenString() == op; },
-                               "operator"};
-        };
+            std::string inputFilename;
 
-        auto tok = [&](peach::token::tokenCategory_t cat) {
-            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getCategory() == cat; },
-                               "token of category '" + peach::token::tokenCategoryString[cat] + "'"};
-        };
+            options.add_options()(
+                "i,input", "Specify input filename", cxxopts::value<std::string>(inputFilename))(
+                "h,help", "Print usage");
 
-        std::vector<prolog::grammar::Rule> rules =
+            auto result = options.parse(argc, argv);
+            if (result.count("help"))
             {
-                {TERM, seq{num, oper("+"), term}},
-                {TERM, seq{num, oper("-"), term}},
-                {TERM, seq{num}},
-                {NUM, seq{tok(peach::token::tokenCategory::VALUE_INT)}},
-            };
+                std::cout << options.help() << std::endl;
+                return 0;
+            }
 
-        auto matchResult = prolog::grammar::matchTokensToGrammar(prolog::grammar::GrammarUnit{TERM, tokens.begin() + 1, tokens.end() - 1, "summation"},
-                                                                 rules,
-                                                                 {{"(", ")"}});
+            if (!result.count("input"))
+            {
+                throw std::invalid_argument("option input is required, add -h to see help");
+            }
 
-        if (!matchResult.exception.isEmpty())
-        {
-            std::cout << matchResult.exception.what() << std::endl;
+            std::ifstream inputFile(inputFilename);
+            if (!inputFile.good())
+            {
+                throw std::invalid_argument("can not read " + inputFilename);
+            }
+            programText = std::string((std::istreambuf_iterator<char>(inputFile)),
+                                      std::istreambuf_iterator<char>());
         }
-        else
+
+        auto exceptions = prolog::grammar::checkPrologProgram(programText);
+        std::vector<std::string> lines;
+        std::stringstream codestream(programText);
+        std::string line;
+        while (std::getline(codestream, line, '\n'))
         {
-            std::cout << "correct" << std::endl;
+            lines.push_back(std::move(line));
+        }
+        for (auto ex : exceptions)
+        {
+            if (auto posex = std::dynamic_pointer_cast<prolog::exception::PositionalException>(ex); posex && posex->line < lines.size())
+            {
+                std::cout << lines[posex->line] << std::endl;
+                for (std::size_t i = 0; i < posex->linePos; ++i)
+                {
+                    std::cout << "-";
+                }
+                std::cout << "^";
+                for (std::size_t i = posex->linePos + 1; i < lines[posex->line].length(); ++i)
+                {
+                    std::cout << "-";
+                }
+                std::cout << std::endl;
+            }
+            std::cout << ex->what() << std::endl;
         }
     }
     catch (const std::exception &e)

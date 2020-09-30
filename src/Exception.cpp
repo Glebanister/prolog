@@ -24,8 +24,10 @@ PositionalException::PositionalException(const std::string &name,
     : Exception(name,
                 message +
                     " at " +
-                    std::to_string(line) + ":" +
-                    std::to_string(linePos))
+                    std::to_string(line + 1) + ":" +
+                    std::to_string(linePos + 1)),
+      line(line),
+      linePos(linePos)
 {
 }
 

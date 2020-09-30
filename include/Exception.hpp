@@ -44,6 +44,8 @@ public:
                         const std::string &message,
                         std::size_t line,
                         int linePos);
+
+    const std::size_t line, linePos;
 };
 
 class TokenException : public PositionalException

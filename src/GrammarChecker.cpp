@@ -41,15 +41,24 @@ TokenPtrIterator GrammarUnit::end() { return end_; }
 const TokenMatcherType &GrammarUnit::matcher() const { return tokenMatcher_; }
 const std::string &GrammarUnit::description() const { return unitDescription_; }
 
+Rule::Rule(const GrammarUnit &from, const GrammarUnitSequence &to)
+    : from(from), to(to)
+{
+    if (from.isTerminal())
+    {
+        throw std::invalid_argument("left side of grammar rule cannot be nonterminal");
+    }
+}
+
 MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
                                    const std::vector<Rule> &rules,
                                    const std::unordered_map<std::string, std::string> &braces)
 {
     auto longestMatch = nonterminal.begin();
     bool hasOneMatch = false;
-    exception::Exception bestMatchException = exception::EmptyException();
+    std::shared_ptr<exception::Exception> bestMatchException = std::make_shared<exception::EmptyException>();
 
-    auto updateBestMatch = [&](exception::Exception ex, TokenPtrIterator matched) {
+    auto updateBestMatch = [&](std::shared_ptr<exception::Exception> ex, TokenPtrIterator matched) {
         if (!hasOneMatch)
         {
             longestMatch = matched;
@@ -69,7 +78,7 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
         const auto &type = rule.from;
         const auto &seq = rule.to;
         TokenPtrIterator tokenIt = nonterminal.begin();
-        if (type != nonterminal.getUnitType())
+        if (type.getUnitType() != nonterminal.getUnitType())
         {
             continue;
         }
@@ -82,17 +91,19 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
                 if (tokenIt >= nonterminal.end())
                 {
                     auto badIter = std::prev(nonterminal.end());
-                    auto except = exception::GrammarException{"expected " + unit.description(),
-                                                              (*std::prev(nonterminal.end()))->getLine(),
-                                                              (*std::prev(nonterminal.end()))->getLinePosition()};
+                    std::shared_ptr<exception::Exception> except =
+                        std::make_shared<exception::GrammarException>("expected " + unit.description(),
+                                                                      (*std::prev(nonterminal.end()))->getLine(),
+                                                                      (*std::prev(nonterminal.end()))->getLinePosition() + 1);
+
                     updateBestMatch(std::move(except), nonterminal.end());
                     break;
                 }
                 else if (!unit.matcher()(**tokenIt))
                 {
-                    updateBestMatch(exception::GrammarException{"expected " + unit.description(),
-                                                                (*tokenIt)->getLine(),
-                                                                (*tokenIt)->getLinePosition()},
+                    updateBestMatch(std::make_shared<exception::GrammarException>("expected " + unit.description(),
+                                                                                  (*tokenIt)->getLine(),
+                                                                                  (*tokenIt)->getLinePosition()),
                                     tokenIt);
                     break;
                 }
@@ -139,7 +150,7 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
                 {
                 }
                 auto matchingResult = matchTokensToGrammar(GrammarUnit{unit.getUnitType(), tokenIt, nextTerminal, unit.description()}, rules, braces);
-                if (matchingResult.exception.isEmpty())
+                if (matchingResult.exception->isEmpty())
                 {
                     tokenIt = nextTerminal;
                 }
@@ -153,25 +164,26 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
         }
         if (tokenIt < nonterminal.end())
         {
-            updateBestMatch(exception::GrammarException{"unexpected token sequence after token",
-                                                        (*tokenIt)->getLine(),
-                                                        (*tokenIt)->getLinePosition()},
+            updateBestMatch(std::make_shared<exception::GrammarException>("unexpected token sequence after token",
+                                                                          (*tokenIt)->getLine(),
+                                                                          (*tokenIt)->getLinePosition()),
                             tokenIt);
         }
         if (unitId < seq.size())
         {
-            updateBestMatch(exception::GrammarException{"incomplete token sequence (is it " + nonterminal.description() + "?)",
-                                                        (*std::prev(nonterminal.end()))->getLine(),
-                                                        (*std::prev(nonterminal.end()))->getLinePosition()},
+            updateBestMatch(std::make_shared<exception::GrammarException>("incomplete token sequence (is it " + nonterminal.description() + "?)",
+                                                                          (*std::prev(nonterminal.end()))->getLine(),
+                                                                          (*std::prev(nonterminal.end()))->getLinePosition()),
                             tokenIt);
         }
         if (tokenIt == nonterminal.end() && unitId == seq.size())
         {
             longestMatch = nonterminal.end();
-            bestMatchException = exception::EmptyException();
+            bestMatchException = std::make_shared<exception::EmptyException>();
             break;
         }
     }
+
     return {longestMatch, bestMatchException};
 }
 } // namespace grammar
