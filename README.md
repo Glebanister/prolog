@@ -22,6 +22,9 @@ make
 |---------------|----------------------|--------|
 | `-i, --input` | Specify program path | string |
 | `-h, --help`  | Get help             | -      |
+| `-t, --test`  | Run tests            | -      |
+
+If program output is empty, then your program (or tests if there is `-t` flag) is correct.
 
 ## Grammar
 
@@ -55,6 +58,7 @@ a :- x, y.
 b :- (x, y; a, b, c)
 c :- x.
 b :- (x, y a, b, c).
+$ ./prolog-checker -t
 $ ./prolog-checker -i prolog.pl
 c :- x.
 ^------
