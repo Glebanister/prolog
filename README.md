@@ -1,12 +1,12 @@
-# Lexer
+# Prolog grammar checker
 
-Formal languages HW №2.
+Formal languages HW №4.
 
 ## Installation
 
 ```bash
-git clone https://github.com/Glebanister/fp_lexer --recursive
-cd fp_lexer
+git clone https://github.com/Glebanister/prolog --recursive
+cd prolog
 mkdir build && cd build
 cmake ..
 make
@@ -15,29 +15,51 @@ make
 ## Usage
 
 ```bash
-./fp_lexer <input file name>
+./prolog-checker [OPTION...]
+```
+
+| Option        | Meaning              | Value  |
+|---------------|----------------------|--------|
+| `-i, --input` | Specify program path | string |
+| `-h, --help`  | Get help             | -      |
+
+## Grammar
+
+Is not hardcoded, described in `include/PrologGrammarChecker.hpp`
+
+```C++
+std::vector<prolog::grammar::Rule> rules =
+            {
+                {decl, equals{tok(prologTokens::NAME), body, str(".")}},
+
+                {body, equals{str(":-"), disj}},
+                {body, equals{}},
+
+                {disj, equals{conj, oper(";"), disj}},
+                {disj, equals{conj}},
+
+                {conj, equals{name, str(","), conj}},
+                {conj, equals{str("("), disj, str(")"), oper(","), conj}},
+                {conj, equals{str("("), disj, str(")")}},
+                {conj, equals{name}},
+
+                {name, equals{tok(prologTokens::NAME)}},
+            };
 ```
 
 ## Example
 
 ```bash
-$ cat example
-sig auto.
-
-type state, initial, final State -> o.
-$ ./fp_lexer example 
-$ cat example.sig 
-SIG 'sig' 0 0
-NAME 'auto' 0 4
-DOT '.' 0 8
-TYPE 'type' 2 11
-NAME 'state' 2 16
-COMMA ',' 2 21
-NAME 'initial' 2 23
-COMMA ',' 2 30
-NAME 'final' 2 32
-NAME 'State' 2 38
-OPERATOR_BI '->' 2 44
-NAME 'o' 2 47
-DOT '.' 2 48
+$ cat prolog.pl
+a :- x, y.
+b :- (x, y; a, b, c)
+c :- x.
+b :- (x, y a, b, c).
+$ ./prolog-checker -i prolog.pl
+c :- x.
+^------
+GrammarException: expected operator at 3:1
+b :- (x, y a, b, c).
+-----------^--------
+GrammarException: unexpected token sequence after token at 4:12
 ```
