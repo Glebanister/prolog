@@ -1,3 +1,6 @@
 [submodule "peach"]
 	path = peach
 	url = https://github.com/Glebanister/peach
+[submodule "cxxopts"]
+	path = cxxopts
+	url = https://github.com/jarro2783/cxxopts
