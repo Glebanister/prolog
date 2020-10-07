@@ -32,9 +32,9 @@ std::vector<std::vector<peach::token::TokenPtr>> splitByPeriod(std::vector<peach
     return declarations;
 }
 
-std::vector<std::shared_ptr<exception::Exception>> checkPrologProgram(const std::string &programText)
+std::vector<std::shared_ptr<Printable>> checkPrologProgram(const std::string &programText)
 {
-    std::vector<std::shared_ptr<exception::Exception>> exceptions;
+    std::vector<std::shared_ptr<Printable>> result;
 
     prolog::lexer::PrologLexer lexer;
     std::vector<peach::token::TokenPtr> programTokens = lexer.tokenizeText(programText);
@@ -42,12 +42,12 @@ std::vector<std::shared_ptr<exception::Exception>> checkPrologProgram(const std:
     {
         if (!tk->getCategory())
         {
-            exceptions.push_back(std::make_shared<exception::TokenException>(tk->getLine(), tk->getLinePosition()));
+            result.push_back(std::static_pointer_cast<Printable>(std::make_shared<exception::TokenException>(tk->getLine(), tk->getLinePosition())));
         }
     }
-    if (!exceptions.empty())
+    if (!result.empty())
     {
-        return exceptions;
+        return result;
     }
 
     for (auto &&tokens : splitByPeriod(std::move(programTokens)))
@@ -145,12 +145,16 @@ std::vector<std::shared_ptr<exception::Exception>> checkPrologProgram(const std:
                                                                                               decl.description()},
                                                                  rules,
                                                                  {{"(", ")"}});
-        if (!matchResult.exception->isEmpty())
+        if (!matchResult.syntaxTree)
         {
-            exceptions.push_back(std::move(matchResult.exception));
+            result.push_back(std::static_pointer_cast<Printable>(matchResult.exception));
+        }
+        else
+        {
+            result.push_back(std::static_pointer_cast<Printable>(matchResult.syntaxTree));
         }
     }
-    return exceptions;
+    return result;
 }
 } // namespace grammar
 } // namespace prolog

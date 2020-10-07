@@ -2,22 +2,27 @@
 
 #include <deque>
 #include <memory>
+#include <ostream>
 #include <stdexcept>
 
 namespace prolog
 {
+struct Printable
+{
+    virtual void print(std::ostream &) const = 0;
+    virtual ~Printable() noexcept = default;
+};
+
 namespace exception
 {
-class Exception
+class Exception : public Printable
 {
 public:
     explicit Exception(const std::string &name,
                        const std::string &message);
 
     const char *what() const noexcept;
-    std::string reportStack() const noexcept;
-
-    virtual ~Exception() noexcept = default;
+    void print(std::ostream &) const override;
 
     bool isEmpty() const noexcept;
 

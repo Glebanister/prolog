@@ -7,7 +7,8 @@ add_executable(${EXE} src/main.cpp
                       src/Lexer.cpp
                       src/Exception.cpp
                       src/GrammarChecker.cpp
-                      src/PrologGrammarChecker.cpp)
+                      src/PrologGrammarChecker.cpp
+                      src/Expression.cpp)
 
 target_include_directories(${EXE} PRIVATE include)
 

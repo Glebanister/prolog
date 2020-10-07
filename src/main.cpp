@@ -55,12 +55,19 @@ int runTests()
     int result = 0;
     for (const auto correctTest : correctProgramms)
     {
-        auto exs = prolog::grammar::checkPrologProgram(correctTest);
-        if (!exs.empty())
+        std::vector<std::shared_ptr<prolog::exception::Exception>> exceptions;
+        for (auto maybeException : prolog::grammar::checkPrologProgram(correctTest))
+        {
+            if (auto ex = std::dynamic_pointer_cast<prolog::exception::Exception>(maybeException); ex)
+            {
+                exceptions.push_back(std::move(ex));
+            }
+        }
+        if (!exceptions.empty())
         {
             std::cout << "Program:" << std::endl
                       << "'" << correctTest << "' is correct, but has exceptions" << std::endl;
-            for (const auto &ex : exs)
+            for (const auto &ex : exceptions)
             {
                 std::cout << ex->what() << std::endl;
             }
@@ -133,7 +140,6 @@ int main(int argc, const char **argv)
             }
         }
 
-        auto exceptions = prolog::grammar::checkPrologProgram(programText);
         std::vector<std::string> lines;
         std::stringstream codestream(programText);
         std::string line;
@@ -142,11 +148,16 @@ int main(int argc, const char **argv)
             lines.push_back(std::move(line));
         }
         std::stringstream output;
-        for (auto ex : exceptions)
+        std::size_t lineId = 0;
+        for (auto lineResult : prolog::grammar::checkPrologProgram(programText))
         {
-            if (auto posex = std::dynamic_pointer_cast<prolog::exception::PositionalException>(ex); posex && posex->line < lines.size())
+            output << lines[lineId] << std::endl;
+            if (auto treePtr = std::dynamic_pointer_cast<prolog::SyntaxTree>(lineResult); treePtr)
             {
-                output << lines[posex->line] << std::endl;
+                treePtr->print(output);
+            }
+            else if (auto posex = std::dynamic_pointer_cast<prolog::exception::PositionalException>(lineResult); posex && posex->line < lines.size())
+            {
                 for (std::size_t i = 0; i < posex->linePos; ++i)
                 {
                     output << "-";
@@ -157,8 +168,17 @@ int main(int argc, const char **argv)
                     output << "-";
                 }
                 output << std::endl;
+                posex->print(output);
             }
-            output << ex->reportStack() << std::endl;
+            else if (auto ex = std::dynamic_pointer_cast<prolog::exception::Exception>(lineResult); ex)
+            {
+                ex->print(output);
+            }
+            else
+            {
+                throw std::invalid_argument("Unknown parsing result returned from prolog checker");
+            }
+            ++lineId;
         }
         std::ofstream file(outputFilename);
         if (!file.good())

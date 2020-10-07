@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "Exception.hpp"
+#include "Expression.hpp"
 #include "Tokenization/Token.hpp"
 
 namespace prolog
@@ -61,6 +62,7 @@ struct MathingResult
 {
     TokenPtrIterator lastMatched;
     std::shared_ptr<exception::Exception> exception = std::make_shared<exception::EmptyException>();
+    std::shared_ptr<SyntaxTree> syntaxTree = nullptr;
 };
 
 MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,

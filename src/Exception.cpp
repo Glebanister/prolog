@@ -31,15 +31,9 @@ const char *Exception::what() const noexcept
     return msg_.c_str();
 }
 
-std::string Exception::reportStack() const noexcept
+void Exception::print(std::ostream &os) const
 {
-    std::stringstream message;
-    for (std::size_t i = 0; i < stack_.size(); ++i)
-    {
-        message << stack_[i]->reportStack() << std::endl;
-    }
-    message << msg_;
-    return message.str();
+    os << what() << std::endl;
 }
 
 bool Exception::isEmpty() const noexcept { return empty_; }

@@ -57,7 +57,15 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
     auto longestMatch = nonterminal.begin();
     bool hasOneMatch = false;
     std::shared_ptr<exception::Exception> bestMatchException = std::make_shared<exception::EmptyException>();
-
+    std::shared_ptr<SyntaxTree> syntaxTree;
+    {
+        std::string nonterminalCode;
+        for (const auto &tk : nonterminal)
+        {
+            nonterminalCode += tk->getTokenString();
+        }
+        syntaxTree = makeTreePtr(nonterminal.description(), std::move(nonterminalCode));
+    }
     auto updateBestMatch = [&](std::shared_ptr<exception::Exception> ex, TokenPtrIterator matched) {
         if (!hasOneMatch)
         {
@@ -75,6 +83,7 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
 
     for (const auto &rule : rules)
     {
+        syntaxTree->resetSubtrees();
         const auto &type = rule.from;
         const auto &seq = rule.to;
         TokenPtrIterator tokenIt = nonterminal.begin();
@@ -107,6 +116,7 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
                                     tokenIt);
                     break;
                 }
+                syntaxTree->addSubtree(makeTreePtr(unit.description(), (*tokenIt)->getTokenString()));
                 ++tokenIt;
             }
             else
@@ -146,13 +156,11 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
                         }
                     }
                 }
-                if (nextTerminal >= nonterminal.end())
-                {
-                }
                 auto matchingResult = matchTokensToGrammar(GrammarUnit{unit.getUnitType(), tokenIt, nextTerminal, unit.description()}, rules, braces);
                 if (matchingResult.exception->isEmpty())
                 {
                     tokenIt = nextTerminal;
+                    syntaxTree->addSubtree(matchingResult.syntaxTree);
                 }
                 else
                 {
@@ -184,7 +192,14 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
         }
     }
 
-    return {longestMatch, bestMatchException};
+    if (!bestMatchException->isEmpty())
+    {
+        syntaxTree.reset();
+    }
+
+    return {std::move(longestMatch),
+            std::move(bestMatchException),
+            std::move(syntaxTree)};
 }
 } // namespace grammar
 } // namespace prolog
