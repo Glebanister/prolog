@@ -61,17 +61,22 @@ std::vector<prolog::grammar::Rule> rules =
 ## Example
 
 ```bash
-$ cat prolog.pl
-a :- x, y.
-b :- (x, y; a, b, c)
-c :- x.
-b :- (x, y a, b, c).
-$ ./prolog-checker -t
-$ ./prolog-checker -i prolog.pl
-c :- x.
-^------
-GrammarException: expected operator at 3:1
-b :- (x, y a, b, c).
------------^--------
-GrammarException: unexpected token sequence after token at 4:12
+$ ./prolog-checker -i example.pl && cat example.pl.out
+f () :- a.
+---^------
+GrammarException: expected opening bracket ('(') at 1:4
+
+a :- b.
+├─ function declaration: 'a :- b .'
+│  ├─ atom: 'a'
+│  │  ├─ token of category 'identifier': 'a'
+│  │  ├─ atom sequence: ''
+│  ├─ corckscrew (':-'): ':-'
+│  ├─ function body: 'b'
+│  │  ├─ disjunction: 'b'
+│  │  │  ├─ conjunction: 'b'
+│  │  │  │  ├─ atom: 'b'
+│  │  │  │  │  ├─ token of category 'identifier': 'b'
+│  │  │  │  │  ├─ atom sequence: ''
+│  ├─ period ('.'): '.'
 ```
