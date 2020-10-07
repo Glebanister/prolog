@@ -1,6 +1,6 @@
 # Prolog grammar checker
 
-Formal languages HW №4.
+Formal languages HW №5.
 
 ## Installation
 

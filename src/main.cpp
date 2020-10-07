@@ -178,7 +178,10 @@ int main(int argc, const char **argv)
             {
                 throw std::invalid_argument("Unknown parsing result returned from prolog checker");
             }
-            ++lineId;
+            if (++lineId != lines.size())
+            {
+                output << std::endl;
+            }
         }
         std::ofstream file(outputFilename);
         if (!file.good())

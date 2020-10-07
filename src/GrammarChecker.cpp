@@ -60,9 +60,9 @@ MathingResult matchTokensToGrammar(const GrammarUnit &nonterminal,
     std::shared_ptr<SyntaxTree> syntaxTree;
     {
         std::string nonterminalCode;
-        for (const auto &tk : nonterminal)
+        for (auto tkIt = nonterminal.begin(); tkIt < nonterminal.end(); ++tkIt)
         {
-            nonterminalCode += tk->getTokenString();
+            nonterminalCode += (*tkIt)->getTokenString() + (tkIt == std::prev(nonterminal.end()) ? "" : " ");
         }
         syntaxTree = makeTreePtr(nonterminal.description(), std::move(nonterminalCode));
     }
