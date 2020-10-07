@@ -1,5 +1,8 @@
 #include "Exception.hpp"
 
+#include <cassert>
+#include <sstream>
+
 namespace prolog
 {
 namespace exception
@@ -8,12 +11,36 @@ Exception::Exception(const std::string &name,
                      const std::string &message)
     : msg_(name + ": " + message) {}
 
-void Exception::extend(const Exception &ex)
+void Exception::push(std::shared_ptr<Exception> message)
 {
-    msg_ += std::string("\n") + ex.what();
+    stack_.push_back(message);
 }
 
-const char *Exception::what() const noexcept { return msg_.c_str(); }
+void Exception::pop()
+{
+    stack_.pop_back();
+}
+
+bool Exception::isStackEmpty() const noexcept
+{
+    return stack_.empty();
+}
+
+const char *Exception::what() const noexcept
+{
+    return msg_.c_str();
+}
+
+std::string Exception::reportStack() const noexcept
+{
+    std::stringstream message;
+    for (std::size_t i = 0; i < stack_.size(); ++i)
+    {
+        message << stack_[i]->reportStack() << std::endl;
+    }
+    message << msg_;
+    return message.str();
+}
 
 bool Exception::isEmpty() const noexcept { return empty_; }
 

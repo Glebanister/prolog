@@ -117,7 +117,7 @@ int main(int argc, const char **argv)
 
             if (!result.count("input"))
             {
-                throw std::invalid_argument("option input is required, add -h to see help");
+                throw std::invalid_argument("Option input is required, add -h to see help");
             }
 
             std::ifstream inputFile(inputFilename);
@@ -158,7 +158,7 @@ int main(int argc, const char **argv)
                 }
                 output << std::endl;
             }
-            output << ex->what() << std::endl;
+            output << ex->reportStack() << std::endl;
         }
         std::ofstream file(outputFilename);
         if (!file.good())
