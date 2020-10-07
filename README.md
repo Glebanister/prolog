@@ -18,11 +18,12 @@ make
 ./prolog-checker [OPTION...]
 ```
 
-| Option        | Meaning              | Value  |
-|---------------|----------------------|--------|
-| `-i, --input` | Specify program path | string |
-| `-h, --help`  | Get help             | -      |
-| `-t, --test`  | Run tests            | -      |
+| Option         | Meaning                                                                      | Value  |
+|----------------|------------------------------------------------------------------------------|--------|
+| `-i, --input`  | Specify input file path                                                      | string |
+| `-o, --output` | Specify output file path (output is being written to `<input-filename>.out`) | string |
+| `-h, --help`   | Get help                                                                     | -      |
+| `-t, --test`   | Run tests                                                                    | -      |
 
 If program output is empty, then your program (or tests if there is `-t` flag) is correct.
 
