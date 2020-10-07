@@ -28,26 +28,33 @@ If program output is empty, then your program (or tests if there is `-t` flag) i
 
 ## Grammar
 
-Is not hardcoded, described in `include/PrologGrammarChecker.hpp`
+Is not hardcoded, described in `src/PrologGrammarChecker.cpp`:
 
 ```C++
 std::vector<prolog::grammar::Rule> rules =
-            {
-                {decl, equals{tok(prologTokens::NAME), body, str(".")}},
+    {
+        {atom, equals{id, atom_seq}},
 
-                {body, equals{str(":-"), disj}},
-                {body, equals{}},
+        {atom_seq, equals{atom}},
+        {atom_seq, equals{}},
+        {atom_seq, equals{bOpen, atom_brackets, bClose, atom_seq}},
 
-                {disj, equals{conj, oper(";"), disj}},
-                {disj, equals{conj}},
+        {atom_brackets, equals{bOpen, atom_brackets, bClose}},
+        {atom_brackets, equals{atom}},
 
-                {conj, equals{name, str(","), conj}},
-                {conj, equals{str("("), disj, str(")"), oper(","), conj}},
-                {conj, equals{str("("), disj, str(")")}},
-                {conj, equals{name}},
+        {decl, equals{atom, corkscrew, body, period}},
+        {decl, equals{atom, period}},
 
-                {name, equals{tok(prologTokens::NAME)}},
-            };
+        {body, equals{disj}},
+
+        {disj, equals{conj, opOr, disj}},
+        {disj, equals{conj}},
+
+        {conj, equals{atom, opAnd, conj}},
+        {conj, equals{bOpen, disj, bClose, opAnd, conj}},
+        {conj, equals{bOpen, disj, bClose}},
+        {conj, equals{atom}},
+    };
 ```
 
 ## Example

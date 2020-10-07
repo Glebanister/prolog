@@ -77,43 +77,66 @@ std::vector<std::shared_ptr<exception::Exception>> checkPrologProgram(const std:
             NAME,
             DECL,
             BODY,
+            ATOM,
+            ATOM_SEQUENCE,
+            ATOM_BRACKETS,
         };
 
+        auto str = [&](std::string str, std::string desc) {
+            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getTokenString() == str; },
+                               std::move(desc) + " ('" + str + "')"};
+        };
+        auto oper = [&](std::string oper, std::string desc) {
+            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getTokenString() == oper; },
+                               "operator " + desc};
+        };
+        auto tok = [&](peach::token::tokenCategory_t cat, std::string desc) {
+            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getCategory() == cat; },
+                               "token of category '" + std::move(desc) + "'"};
+        };
+
+        // Terminals
+        GrammarUnit id = tok(prologTokens::NAME, "identifier");
+        GrammarUnit bOpen = str("(", "opening bracket");
+        GrammarUnit bClose = str(")", "closing bracket");
+        GrammarUnit corkscrew = str(":-", "corckscrew");
+        GrammarUnit opOr = str(";", "semicolon");
+        GrammarUnit opAnd = str(",", "comma");
+        GrammarUnit period = str(".", "period");
+
+        // Non-terminals
         GrammarUnit disj{DISJ, "disjunction"};
         GrammarUnit conj{CONJ, "conjunction"};
         GrammarUnit name{NAME, "indentificator"};
         GrammarUnit decl{DECL, "function declaration"};
         GrammarUnit body{BODY, "function body"};
-
-        auto str = [&](std::string str) {
-            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getTokenString() == str; },
-                               "pattern '" + str + "'"};
-        };
-        auto oper = [&](std::string oper) {
-            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getTokenString() == oper; },
-                               "operator"};
-        };
-        auto tok = [&](peach::token::tokenCategory_t cat) {
-            return GrammarUnit{[=](const peach::token::Token &tk) { return tk.getCategory() == cat; },
-                               "token of category '" + peach::token::tokenCategoryString[cat] + "'"};
-        };
+        GrammarUnit atom{ATOM, "atom"};
+        GrammarUnit atom_seq{ATOM_SEQUENCE, "atom sequence"};
+        GrammarUnit atom_brackets{ATOM_BRACKETS, "atom in brackets"};
 
         std::vector<prolog::grammar::Rule> rules =
             {
-                {decl, equals{tok(prologTokens::NAME), body, str(".")}},
+                {atom, equals{id, atom_seq}},
 
-                {body, equals{str(":-"), disj}},
-                {body, equals{}},
+                {atom_seq, equals{atom}},
+                {atom_seq, equals{}},
+                {atom_seq, equals{bOpen, atom_brackets, bClose, atom_seq}},
 
-                {disj, equals{conj, oper(";"), disj}},
+                {atom_brackets, equals{bOpen, atom_brackets, bClose}},
+                {atom_brackets, equals{atom}},
+
+                {decl, equals{atom, corkscrew, body, period}},
+                {decl, equals{atom, period}},
+
+                {body, equals{disj}},
+
+                {disj, equals{conj, opOr, disj}},
                 {disj, equals{conj}},
 
-                {conj, equals{name, str(","), conj}},
-                {conj, equals{str("("), disj, str(")"), oper(","), conj}},
-                {conj, equals{str("("), disj, str(")")}},
-                {conj, equals{name}},
-
-                {name, equals{tok(prologTokens::NAME)}},
+                {conj, equals{atom, opAnd, conj}},
+                {conj, equals{bOpen, disj, bClose, opAnd, conj}},
+                {conj, equals{bOpen, disj, bClose}},
+                {conj, equals{atom}},
             };
 
         auto matchResult = prolog::grammar::matchTokensToGrammar(prolog::grammar::GrammarUnit{DECL,

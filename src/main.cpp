@@ -20,7 +20,13 @@ int runTests()
         "x :- x, (y; (a, b, c, d, (e); f) ,z).",
         "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
         "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; d.",
-    };
+        "x :- x, (y; (a, b, c d, (e); f) ,z).",
+        "a :- a a a a a.",
+        "a :- a a a a a, a a a; a a a, a.",
+        "a (((a))) :- (((a))), a.",
+        "a (a) a ((a)) :- a, a, a (a).",
+        "a :- (a).",
+        "a :- (a), (b), (c)."};
     std::vector<std::string> incorrectProgramms = {
         "1",
         ".",
@@ -37,10 +43,14 @@ int runTests()
         "a :- x..",
         "1badname :- x, (y; z).",
         "other_name :- x, (y; ((a, b, c, d, e; f) ,z).",
-        "x :- x, (y; (a, b, c d, (e); f) ,z).",
         "x :- x, (y; a, b, c, d, (e); f) ,z), a ; d.",
         "x :- x, (y; (a, b, c, d, (e); f) ,z), a ; .",
-    };
+        "a :- (a) (a) a a a.",
+        "a (((a)) :- (((a))), a.",
+        "a (a) a ((a)) :- a, a, a ((a) a (a)).",
+        "a :- ().",
+        "(a) :- a.",
+        "a () :- (a), (b), (c)."};
 
     int result = 0;
     for (const auto correctTest : correctProgramms)
@@ -50,6 +60,10 @@ int runTests()
         {
             std::cout << "Program:" << std::endl
                       << "'" << correctTest << "' is correct, but has exceptions" << std::endl;
+            for (const auto &ex : exs)
+            {
+                std::cout << ex->what() << std::endl;
+            }
             result = -1;
         }
     }
