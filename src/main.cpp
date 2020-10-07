@@ -86,6 +86,7 @@ int main(int argc, const char **argv)
     try
     {
         std::string programText;
+        std::string outputFilename;
         {
             const std::string description = ""
                                             "Prolog grammar checker\n"
@@ -97,7 +98,8 @@ int main(int argc, const char **argv)
             std::string inputFilename;
 
             options.add_options()(
-                "i,input", "Specify input filename", cxxopts::value<std::string>(inputFilename))(
+                "i,input", "Specify input file path", cxxopts::value<std::string>(inputFilename))(
+                "o,output", "Specify output file path", cxxopts::value<std::string>(outputFilename))(
                 "h,help", "Print usage")(
                 "t,test", "Run tests");
 
@@ -121,10 +123,14 @@ int main(int argc, const char **argv)
             std::ifstream inputFile(inputFilename);
             if (!inputFile.good())
             {
-                throw std::invalid_argument("can not read " + inputFilename);
+                throw std::invalid_argument("Can not read from '" + inputFilename + "'");
             }
             programText = std::string((std::istreambuf_iterator<char>(inputFile)),
                                       std::istreambuf_iterator<char>());
+            if (outputFilename.empty())
+            {
+                outputFilename = inputFilename + ".out";
+            }
         }
 
         auto exceptions = prolog::grammar::checkPrologProgram(programText);
@@ -135,24 +141,31 @@ int main(int argc, const char **argv)
         {
             lines.push_back(std::move(line));
         }
+        std::stringstream output;
         for (auto ex : exceptions)
         {
             if (auto posex = std::dynamic_pointer_cast<prolog::exception::PositionalException>(ex); posex && posex->line < lines.size())
             {
-                std::cout << lines[posex->line] << std::endl;
+                output << lines[posex->line] << std::endl;
                 for (std::size_t i = 0; i < posex->linePos; ++i)
                 {
-                    std::cout << "-";
+                    output << "-";
                 }
-                std::cout << "^";
+                output << "^";
                 for (std::size_t i = posex->linePos + 1; i < lines[posex->line].length(); ++i)
                 {
-                    std::cout << "-";
+                    output << "-";
                 }
-                std::cout << std::endl;
+                output << std::endl;
             }
-            std::cout << ex->what() << std::endl;
+            output << ex->what() << std::endl;
         }
+        std::ofstream file(outputFilename);
+        if (!file.good())
+        {
+            throw std::invalid_argument("Can not write to '" + outputFilename + "'");
+        }
+        file << output.str();
     }
     catch (const std::exception &e)
     {
