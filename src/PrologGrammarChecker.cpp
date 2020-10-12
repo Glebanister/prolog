@@ -38,20 +38,30 @@ std::vector<std::shared_ptr<Printable>> checkPrologProgram(const std::string &pr
 
     prolog::lexer::PrologLexer lexer;
     std::vector<peach::token::TokenPtr> programTokens = lexer.tokenizeText(programText);
+    std::vector<std::shared_ptr<exception::TokenException>> tokenExceptions;
     for (const auto &tk : programTokens)
     {
         if (!tk->getCategory())
         {
-            result.push_back(std::static_pointer_cast<Printable>(std::make_shared<exception::TokenException>(tk->getLine(), tk->getLinePosition())));
+            tokenExceptions.push_back(std::make_shared<exception::TokenException>(tk->getLine(), tk->getLinePosition()));
         }
     }
-    if (!result.empty())
+    if (!tokenExceptions.empty())
     {
+        for (std::size_t i = 0; i < tokenExceptions.size(); ++i)
+        {
+            tokenExceptions[0]->push(tokenExceptions[i]);
+        }
+        result.push_back(std::static_pointer_cast<Printable>(tokenExceptions[0]));
         return result;
     }
 
     for (auto &&tokens : splitByPeriod(std::move(programTokens)))
     {
+        if (tokens.empty())
+        {
+            continue;
+        }
         tokens.push_back(std::make_unique<peach::token::Token>(peach::token::tokenCategory::BRACKET_OPEN,
                                                                "begin",
                                                                0,

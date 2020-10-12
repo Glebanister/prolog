@@ -50,7 +50,9 @@ int runTests()
         "a (a) a ((a)) :- a, a, a ((a) a (a)).",
         "a :- ().",
         "(a) :- a.",
-        "a () :- (a), (b), (c)."};
+        "a () :- (a), (b), (c).",
+        "f : - f.",
+    };
 
     int result = 0;
     for (const auto correctTest : correctProgramms)
@@ -151,7 +153,7 @@ int main(int argc, const char **argv)
         std::size_t lineId = 0;
         for (auto lineResult : prolog::grammar::checkPrologProgram(programText))
         {
-            output << lines[lineId] << std::endl;
+            output << lines[std::min(lineId, lines.size() - 1)] << std::endl;
             if (auto treePtr = std::dynamic_pointer_cast<prolog::SyntaxTree>(lineResult); treePtr)
             {
                 treePtr->print(output);
