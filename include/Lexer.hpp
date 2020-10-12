@@ -20,7 +20,9 @@ struct prologTokens : public peach::token::tokenCategory
         SIG = peach::token::tokenCategory::_TOKEN_TOTAL + 3,
         TYPE = peach::token::tokenCategory::_TOKEN_TOTAL + 4,
         LITERAL = peach::token::tokenCategory::_TOKEN_TOTAL + 5,
-        CORKSCREW = peach::token::tokenCategory::_TOKEN_TOTAL + 6;
+        CORKSCREW = peach::token::tokenCategory::_TOKEN_TOTAL + 6,
+        MULTISTRING_COMMENT_OPEN = peach::token::tokenCategory::_TOKEN_TOTAL + 7,
+        MULTISTRING_COMMENT_CLOSE = peach::token::tokenCategory::_TOKEN_TOTAL + 8;
 };
 
 class PrologLexer : protected peach::fsm::FsmCollection

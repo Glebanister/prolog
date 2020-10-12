@@ -15,6 +15,8 @@ PrologLexer::PrologLexer()
             std::vector<std::pair<std::string, tokenCategory_t>>{
                 {":-", prologTokens::CORKSCREW},
                 {"->", tokenCategory::OPERATOR_BI},
+                {"(*", prologTokens::MULTISTRING_COMMENT_OPEN},
+                {"*)", prologTokens::MULTISTRING_COMMENT_CLOSE},
             })
         .buildAppendFsm<peach::fsm::SingleCharFinder>(
             std::vector<std::pair<char, tokenCategory_t>>{

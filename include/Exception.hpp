@@ -66,6 +66,13 @@ public:
                    int linePos);
 };
 
+class InvalidCommentException : public PositionalException
+{
+public:
+    InvalidCommentException(std::size_t line,
+                   int linePos);
+};
+
 class GrammarException : public PositionalException
 {
 public:

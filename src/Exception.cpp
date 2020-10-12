@@ -60,5 +60,10 @@ GrammarException::GrammarException(const std::string &message,
                                    std::size_t line,
                                    int linePos)
     : PositionalException("GrammarException", message, line, linePos) {}
+
+InvalidCommentException::InvalidCommentException(std::size_t line,
+                                                 int linePos)
+    : PositionalException("InvalidCommentException", "the comment was closed but was not opened", line, linePos) {}
+
 } // namespace exception
 } // namespace prolog
